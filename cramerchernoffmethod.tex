@@ -1,0 +1,211 @@
+\documentclass[reqno]{amsart}
+\usepackage{graphicx}
+\usepackage{amssymb,bm} % for some reason, also had mathbbol
+\usepackage{enumerate,setspace}
+\usepackage{hyperref}
+\usepackage{colonequals}
+
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\topmargin=-0.33in
+\headheight=0.25in
+\textheight=9in
+
+% this one is my bad: I need to go through and manually convert all the stars to asterisks, but for now, taking a shortcut
+\renewcommand{\star}{*}
+
+\newcommand{\mat}[1]{\ensuremath{\bm{#1}}} % can also use mathbf, but then matrices appear upright instead of slanted
+\renewcommand{\vec}[1]{\ensuremath{\bm{#1}}}
+\newcommand{\e}{\ensuremath{\mathrm{e}}}
+\newcommand{\E}{\ensuremath{\mathbb{E}}}
+\newcommand{\Prob}[1]{\ensuremath{\mathbb{P}\left\{#1\right\}}}
+\newcommand{\lnorm}[2]{\ensuremath{\left\| #2 \right\|_{#1}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+\newcommand{\C}{\ensuremath{\mathbb{C}}}
+\newcommand{\randcon}{\ensuremath{\Psi}}
+\newcommand{\s}{s} % singular values
+
+\DeclareMathOperator{\range}{range}
+\newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\snorm}[1]{\ensuremath{\|#1\|}}
+\newcommand{\lambdamax}[1]{\ensuremath{\lambda_{\mathrm{max}}\left(#1\right)}}
+\newcommand{\lambdamin}[1]{\ensuremath{\lambda_{\mathrm{min}}\left(#1\right)}}
+\newcommand{\Isom}[2]{\ensuremath{\mathbb{V}_{#1}^{#2}}}
+\newcommand{\samats}[1]{\ensuremath{\mathbb{M}^{#1}_{\mathrm{sa}}}}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\newcommand{\trexp}[1]{\ensuremath{\tr\exp\left\{#1\right\}}}
+
+% Change definition of cases environment to allow adding an optional arraystretch param
+% e.g. \begin{cases}[0.8] ... \end{cases}
+\makeatletter
+\renewcommand*\env@cases[1][1.2]{%
+  \let\@ifnextchar\new@ifnextchar
+  \left\lbrace
+  \def\arraystretch{#1}%
+  \array{@{}l@{\quad}l@{}}%
+}
+\makeatother
+
+% GET MACRO FILE FROM JOEL, SEE NUMBERWITHIN TO NUMBER STUFF BY SECTION
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{defn}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+\title{The Cram\'er-Chernoff method for random matrices}
+
+In the recent paper \cite{dimensionfree}, Hsu et al. introduced a technique for obtaining tail bounds for the largest eigenvalue of matrix martingale sums that, in contrast to prior works, yields results that depend on an intrinsic measure of dimension rather than the ambient dimension of the matrices. The main contribution of this paper is a generalization of this bound to all the eigenvalues of such a sum, using the minimax technique introduced in \cite{minimaxlaplace}. 
+
+There is a subtle shortcoming in the presentation of the results in \cite{dimensionfree}: the tail bounds provided are of the uncentered form
+\[
+\Prob{\lambdamax{\sum\nolimits_i \mat{X}_i} > t} \leq C (\e^t - t - 1)^{-1}, 
+\]
+where the constant $C$ depends on properties of the summand and $t$ is constrained to be positive. Such bounds are potentially quite loose: if the largest eigenvalue of the sum concentrates around a large positive number, $C$ will be large and this bound will be overly pessimistic. More crucially, if the largest eigenvalue concentrates around a negative number with large modulus, this tail bound tells us nothing about the behavior of the tails in the region ${t \leq 0}.$ Furthermore, it seems that it is not possible to directly extend the results of \cite{dimensionfree} to apply to all eigenvalues. 
+
+For these reasons, it is more desirable to have centered tail bounds of the form
+\[
+\Prob{\lambdamax{\sum\nolimits_i \mat{X}_i} > \mu + t} \leq C (\e^t - t - 1)^{-1}, 
+\]
+where $\mu$ is an `average' value of the maximum eigenvalue. In this paper, we observe that Hsu et al.'s technique is in fact a matrix generalization of the classical Cram\'er-Chernoff method. With this viewpoint, it becomes clear that a natural choice of $\mu$ is $\lambdamax{\sum_i \E \mat{X}_i}.$ Furthermore, using the Cram\'er-Chernoff formalisms, it becomes quite straightforward to use the minimax technique introduced in \cite{minimaxlaplace} to extend Hsu et al.'s results to bounds on the tails of all the eigenvalues of sums of independent random matrices.
+
+\section*{Convex conjugation}
+
+\begin{thm}[Conjugate inverse theorem]
+Let $\psi$ be a convex and continuously differentiable function on $[0,b)$ with $0 < b \leq +\infty.$ Assume that $\psi(0) = \psi^\prime(0) = 0$ and $\range{\psi^\prime} = \R^+$. Set, for each $x \geq 0,$
+\[
+\psi^*(x) = \sup_{\eta \in (0,b)} \eta x - \psi(\eta).
+\]
+Then $\psi^*$ is a nonnegative, convex, and nondecreasing function on $\R_+.$ Furthermore, for any strictly positive $t \in \range{\psi^*},$
+\[
+\psi^{*-1}(t) = \min_{\eta \in (0,b)} \frac{t + f(\eta)}{\eta}.
+\]
+\end{thm}
+\begin{remark}
+If $f$ is convex and continuously differentiable, then in order for $f^*(x)$ to be achieved it suffices that $x \in \range{f^\prime}.$
+\end{remark}
+
+\begin{proof}
+Let $\eta \in (0,b),$ then 
+\[
+f^*(x) \geq \eta x - f(\eta), 
+\]
+which implies
+\[
+x \leq \frac{f^*(x) - f(\eta)}{\eta}.
+\]
+Because $f^*(x)$ is achieved, we have
+\[
+\frac{f^*(x) + f(\eta^*)}{\eta^*} = x
+\]
+for some $\eta^* \in (0,b).$
+\end{proof}
+
+\section*{The classical Cram\'er-Chernoff method}
+
+The classical Cram\'er-Chernoff technique allows one to bound the tails of a random variable in terms of the Cram\'er transform of the convex conjugate of the cumulant generating function of the random variable \cite{massartconcentration}. In this section, we develop the Cram\'er transform technique in a way which allows a natural generalization to the matrix case in view of Hsu et al.'s main result.
+
+We now introduce the Cram\'er-Chernoff technique. Let $X$ be a random variable and $t,\eta >0.$ By the monotonicity of the scalar exponential function and Markov's inequality, we have
+\begin{align}
+\Prob{\eta X - \psi_X(\eta) \geq t} & = \Prob{\exp(\eta X - \psi_X(\eta)) \geq \e^t}  \notag \\
+& \leq \e^{-t} \E \big( \e^{\eta X}\big) \e^{-\psi_X(\eta)} = \e^{-t} \big(\E \e^{\eta X} \big)\big(\E\e^{\eta X}\big)^{-1} = \e^{-t}. \label{eqn:scalarchernoff}
+\end{align}
+If $X = \sum_i X_i$ is a sum of independent random variables, then the cumulant generating function of $X$ is the sum of cumulant generating functions of the $X_i,$ so we have
+\begin{equation}
+\Prob{\eta \sum\nolimits_i X_i - \sum\nolimits_i \log \E \e^{\eta X_i} \geq t} \leq \e^{-t}. \label{eqn:scalarsumchernoff}
+\end{equation}
+
+\begin{prop}[Cram\'er transform inversion]
+Let $\psi$ be some convex and continuously differentiable function on $[0,b)$ with $0 < b \leq +\infty.$ Assume that $\psi(0)=\psi^\prime(0)=0$ and set, for every $x \geq 0,$
+\[
+\psi^*(x) \colonequals \sup_{\eta \in (0,b)} (\eta x - \psi(\eta)).
+\]
+Then $\psi^*$ is a nonnegative convex and nondecreasing function on $\R_+.$ Moreover, for every $t \geq 0,$ the set $\{x \geq 0\mid \psi^*(x) > t \}$ is nonvoid and the generalized inverse of $\psi^*$ at a point $t,$ defined by
+\[
+\psi^{*-1}(t) = \inf \{ x \geq 0 \mid \psi^*(x) > t \},
+\]
+can also be written as
+\[
+\psi^{*-1}(t) = \inf_{\eta \in (0,b)} \left[ \frac{t + \psi(\eta)}{\eta} \right].
+\]
+\label{prop:cramertransforminversion}
+\end{prop}
+
+Let $X$ be a centered random variable and assume there is an interval $I = [0,b)$ over which $\psi_X$ is well-defined. Then, by \eqref{eqn:scalarchernoff}, for any $\eta \in I,$
+\[
+\Prob{\eta X - \psi_X(\eta) \geq t} = \Prob{ X \geq \frac{ t + \psi_X(\eta)}{\eta}} \leq \e^{-t}.
+\]
+Optimize over $\eta \in I$ to observe that
+\[
+\Prob{ X \geq \psi_X^{*-1}(t) } = \Prob{X \geq \inf_{\eta \in (0,b)} \frac{t + \psi_X(\eta)}{\eta}} \leq \e^{-t}.
+\]
+By definition, for any $t \geq 0,$ we have $\psi_X^{*-1}(\psi^\star_X(t)) \leq t,$ so we conclude that the following tail bound holds:
+\[
+\Prob{X \geq t} \leq \e^{-\psi^\star_X(t)}.
+\]
+
+\section{Minimax Cram\'er-Chernoff technique}
+The following proposition is the main result of \cite{dimensionfree}.
+\begin{prop}
+Let \( \{\mat{X}_i\} \) be a finite sequence of independent, random, self-adjoint matrices. Then for any \(\eta \in \R\) and any \(t > 0,\)
+\begin{multline*}
+\Prob{\lambdamax{\eta \sum\nolimits_i \mat{X}_i - \sum\nolimits_i \log \E[ \exp(\eta \mat{X}_i) ]} \geq t }  \\
+\leq \tr{\E \left[ -\eta \sum\nolimits_i \mat{X}_i + \sum\nolimits_i \log \E[ \exp(\eta \mat{X}_i) ] \right]} \cdot (e^t - t - 1)^{-1}.
+\end{multline*}
+\label{prop:matrixdeviation}
+\end{prop}
+
+Clearly this result is a generalization of \eqref{eqn:scalarchernoff}, at the following costs: the tail decay is slightly slower, $(e^{-t} - t - 1)^{-1}$ versus $e^{-t}$ in the scalar case, and the noncommutativity of the summands introduces a constant (the trace term) not present in the scalar case. By analogy with the tail bounds obtained using the matrix Laplace transform method, we view this constant as a measure of the dimensionality of $\sum_i \mat{X}.$
+
+Using \ref{prop:matrixdeviation} and \ref{prop:cramertransforminversion}, we extend the Cram\'er-Chernoff method to the case where the summands are matrices.
+
+\begin{thm}[Matrix Cram\'er-Chernoff bound]
+Let $\mat{X} = \sum\nolimits_i \mat{X}_i$ be a sum of independent random matrices and take
+\[
+\Psi_{\mat{X}}(\eta) \colonequals \sum\nolimits_i \log \E\e^{\eta (\mat{X}_i - \E \mat{X}_i)}.
+\]
+Let $\Phi \geq \lambdamax{\Psi_{\mat{X}}}$ be a function satisfying the hypotheses of Proposition \ref{prop:cramertransforminversion}. Select $\eta^\star$ to satisfy
+\[
+\Phi^{\star-1}(\Phi^*(t)) = \frac{t + \Phi(\eta^\star)}{\eta^\star}.
+\]
+Then
+\[
+\Prob{\lambdamax{\mat{X}} \geq t + \lambdamax{\E \mat{X}} } \leq ( \tr \Psi_{\mat{X}}(\eta^\star) ) \cdot (\e^{\Phi^\star(t)} - \Phi^\star(t) -1)^{-1}.
+\]
+\end{thm}
+
+\begin{proof}
+We begin by using the subaddivity of the maximum eigenvalue mapping to center $X:$
+\[
+\Prob{\lambdamax{\mat{X}} \geq t + \lambdamax{\E\mat{X}}} \leq \Prob{ \lambdamax{\mat{X} - \E \mat{X}} \geq t }. 
+\]
+It follows that we can assume without loss that the summands are centered.
+
+Let $\eta > 0$ and notice that by Proposition \ref{prop:matrixdeviation},
+\begin{align*}
+\Prob{\lambdamax{\eta \mat{X}} \geq t + \lambdamax{\Psi_{\mat{X}}(\eta)}} & \leq \Prob{\lambdamax{\eta \mat{X} - \Psi_{\mat{X}}(\eta)} \geq t} \\
+& \leq \tr \E\big[ -\eta \mat{X} + \Psi_{\mat{X}}(\eta) \big] \cdot (\e^t - t - 1)^{-1} \\
+&= \tr \Psi_{\mat{X}}(\eta) \cdot(\e^t -t -1)^{-1}.
+\end{align*}
+Since $\Phi \geq \lambdamax{\Psi_{\mat{X}}},$ it follows that
+\[
+\Prob{\lambdamax{\mat{X}} \geq \frac{t + \Phi(\eta)}{\eta} } \leq \tr \Psi_{\mat{X}}(\eta) \cdot (\e^t - t - 1)^{-1}.
+\]
+Optimizing over $\eta$ and applying Proposition \ref{prop:cramertransforminversion}, we obtain
+\[
+\Prob{\lambdamax{\mat{X}} \geq \Phi^{*-1}(t)} \leq \tr \Psi_{\mat{X}}(\eta^*) \cdot (\e^t - t - 1)^{-1}.
+\]
+Using the functional relation $\Phi^{*-1}(\Phi^*(t)) = t,$ we conclude with the bound
+\[
+\Prob{\lambdamax{\mat{X}} \geq t} \leq \tr \Psi_{\mat{X}}(\eta^*) \cdot (\e^{\Phi^*(t)} - \Phi^*(t) - 1)^{-1}.
+\] 
+\end{proof}
+
+\bibliographystyle{amsalpha}
+\bibliography{cramerchernoffmethod}
+\end{document}
